@@ -268,25 +268,7 @@ export default function HomePage() {
         </FadeUp>
       </section>
 
-      {/* ── STATS STRIP ─────────────────────────────────────────────── */}
-      <section className="relative z-10 border-y border-white/10 bg-black">
-        <div className="mx-auto grid max-w-5xl grid-cols-3 divide-x divide-white/10 px-6">
-          <FadeUp className="px-6 py-14 text-center">
-            <div className="text-5xl font-extrabold tracking-tight">23K+</div>
-            <div className="mt-3 text-sm text-white/45">Anuncios en Buenos Aires</div>
-          </FadeUp>
-          <FadeUp delay={100} className="px-6 py-14 text-center">
-            <div className="text-5xl font-extrabold tracking-tight text-amber-400">70%</div>
-            <div className="mt-3 text-sm text-white/45">Están mal optimizados</div>
-          </FadeUp>
-          <FadeUp delay={200} className="px-6 py-14 text-center">
-            <div className="text-5xl font-extrabold tracking-tight text-emerald-400">2×</div>
-            <div className="mt-3 text-sm text-white/45">Más ingresos posibles</div>
-          </FadeUp>
-        </div>
-      </section>
-
-      {/* ── MARKET INTELLIGENCE ─────────────────────────────────────── */}
+{/* ── MARKET INTELLIGENCE ─────────────────────────────────────── */}
       <section className="relative z-10 bg-stone-950 py-24 lg:py-32">
         <div className="mx-auto max-w-7xl px-6">
 
