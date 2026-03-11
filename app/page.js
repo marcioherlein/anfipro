@@ -1,13 +1,55 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+
+// Scroll-reveal wrapper — fades up when entering the viewport
+function FadeUp({ children, className = "", delay = 0 }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
+          }, delay);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.08 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [delay]);
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: 0,
+        transform: "translateY(36px)",
+        transition: `opacity 0.85s ease ${delay}ms, transform 0.85s ease ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function HomePage() {
   const problemCards = [
     {
       icon: "$",
       title: "El dilema ARS/USD",
-      body: "Cobras en dolares pero tus costos son en pesos. Las herramientas de pricing no entienden la inflacion argentina ni el dolar turista.",
+      body: "Cobras en dólares pero tus costos son en pesos. Las herramientas de pricing no entienden la inflación argentina ni el dólar turista.",
     },
     {
       icon: "EN",
-      title: "Todo en ingles",
+      title: "Todo en inglés",
       body: "PriceLabs, Rankbreeze, Beyond Pricing. Buenas herramientas, pero diseñadas para hosts de Estados Unidos y Europa. Sin soporte en español.",
     },
     {
@@ -23,27 +65,27 @@ export default function HomePage() {
       title: "Checklist del Anuncio Perfecto",
       price: "$0",
       body: "PDF con los 15 puntos que todo anuncio necesita.",
-      badge: "Autoevaluacion inmediata",
+      badge: "Autoevaluación inmediata",
     },
     {
-      label: "Diagnostico",
-      title: "Diagnostico Express",
-      price: "$15-25",
-      body: "Auditoria profesional con recomendaciones especificas. Entrega en 48hs por WhatsApp.",
-      badge: "+Vistas en 30 dias",
+      label: "Diagnóstico",
+      title: "Diagnóstico Express",
+      price: "$15–25",
+      body: "Auditoría profesional con recomendaciones específicas. Entrega en 48hs por WhatsApp.",
+      badge: "+Vistas en 30 días",
     },
     {
-      label: "Optimizacion",
-      title: "Optimizacion Completa",
-      price: "$75-120",
-      body: "Reescritura completa, estrategia de precios, guia de fotos y recomendacion ARS/USD.",
-      badge: "+Reservas en 60 dias",
+      label: "Optimización",
+      title: "Optimización Completa",
+      price: "$75–120",
+      body: "Reescritura completa, estrategia de precios, guía de fotos y recomendación ARS/USD.",
+      badge: "+Reservas en 60 días",
     },
     {
       label: "Multi-propiedad",
       title: "Plan Multi-Propiedad",
-      price: "$350-450",
-      body: "Todo lo anterior para hasta 5 propiedades, mas pricing dinamico y seguimiento trimestral.",
+      price: "$350–450",
+      body: "Todo lo anterior para hasta 5 propiedades, más pricing dinámico y seguimiento trimestral.",
       badge: "+RevPAN del portfolio",
     },
   ];
@@ -52,12 +94,12 @@ export default function HomePage() {
     {
       number: "01",
       title: "Compartinos tu anuncio",
-      body: "Mandanos el link de tu listing de Airbnb por WhatsApp. Nada mas.",
+      body: "Mandanos el link de tu listing de Airbnb por WhatsApp. Nada más.",
     },
     {
       number: "02",
       title: "Analizamos todo",
-      body: "Fotos, titulo, descripcion, pricing, posicion en busqueda, competencia en tu zona.",
+      body: "Fotos, título, descripción, pricing, posición en búsqueda, competencia en tu zona.",
     },
     {
       number: "03",
@@ -67,292 +109,521 @@ export default function HomePage() {
     {
       number: "04",
       title: "Ves los resultados",
-      body: "Mas vistas, mejor posicion, mas reservas. Medimos el impacto y te mostramos los numeros.",
+      body: "Más vistas, mejor posición, más reservas. Medimos el impacto y te mostramos los números.",
     },
   ];
 
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    listingUrl: "",
+    city: "",
+    propertyCount: "",
+    mainProblem: "",
+    occupancy: "",
+    revenueRange: "",
+  });
+
+  const [status, setStatus] = useState({
+    loading: false,
+    error: "",
+    success: "",
+  });
+
+  function handleChange(e) {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setStatus({ loading: true, error: "", success: "" });
+    try {
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Something went wrong");
+      setStatus({
+        loading: false,
+        error: "",
+        success: "Gracias. Recibimos tus datos y te vamos a contactar pronto.",
+      });
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        listingUrl: "",
+        city: "",
+        propertyCount: "",
+        mainProblem: "",
+        occupancy: "",
+        revenueRange: "",
+      });
+    } catch (error) {
+      setStatus({
+        loading: false,
+        error: error.message || "Error al enviar el formulario",
+        success: "",
+      });
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-stone-50 text-stone-900">
-      <nav className="border-b border-stone-200 bg-white/90 backdrop-blur">
+    <main className="bg-black text-white">
+
+      {/* ── NAV ─────────────────────────────────────────────────────── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-end gap-3">
-            <span className="text-2xl font-extrabold tracking-tight text-stone-900">
-              anfiPro
-            </span>
-            <span className="pb-0.5 text-sm text-stone-500">
-              Para anfitriones argentinos
-            </span>
+          <div className="flex items-end gap-2">
+            <span className="text-xl font-extrabold tracking-tight">anfiPro</span>
+            <span className="pb-0.5 text-xs text-white/40">Para anfitriones argentinos</span>
           </div>
           <a
             href="#demo"
-            className="rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-700"
+            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/85"
           >
-            Pedí tu demo gratis
+            Pedí tu demo
           </a>
         </div>
       </nav>
 
-      <section className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-2 lg:items-center lg:py-24">
-        <div>
-          <div className="mb-4 inline-flex rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-600 shadow-sm">
-            Optimizacion profesional para hosts en Argentina
-          </div>
+      {/* ── HERO ────────────────────────────────────────────────────── */}
+      <section className="relative flex min-h-screen flex-col items-center justify-center px-6 pt-20 text-center">
+        {/* subtle radial glow */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(52,211,153,0.12) 0%, transparent 70%)",
+          }}
+        />
 
-          <h1 className="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-stone-900 sm:text-5xl lg:text-6xl">
-            Tu anuncio de Airbnb{" "}
-            <span className="italic text-emerald-700">puede rendir el doble</span>
+        <FadeUp delay={100}>
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/60 backdrop-blur">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            Optimización profesional para hosts en Argentina
+          </div>
+        </FadeUp>
+
+        <FadeUp delay={250}>
+          <h1 className="max-w-5xl text-5xl font-extrabold leading-none tracking-tight sm:text-7xl lg:text-8xl">
+            Tu anuncio de Airbnb
+            <br />
+            <span className="text-emerald-400">puede rendir el doble.</span>
           </h1>
+        </FadeUp>
 
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-600">
-            Servicios de optimizacion profesional para anfitriones argentinos. Sin
-            suscripciones mensuales, sin dashboards en ingles. Te llega por
-            WhatsApp, en tu idioma, con precios que tienen sentido.
+        <FadeUp delay={420}>
+          <p className="mt-8 max-w-2xl text-lg leading-8 text-white/55">
+            Sin suscripciones mensuales. Sin dashboards en inglés.
+            <br />
+            Por WhatsApp, en tu idioma, con precios que tienen sentido.
           </p>
+        </FadeUp>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <div className="rounded-full border border-stone-200 bg-white px-4 py-3 shadow-sm">
-              <div className="text-lg font-bold text-stone-900">23K+</div>
-              <div className="text-sm text-stone-500">Anuncios en BSAS</div>
-            </div>
-            <div className="rounded-full border border-stone-200 bg-white px-4 py-3 shadow-sm">
-              <div className="text-lg font-bold text-stone-900">70%</div>
-              <div className="text-sm text-stone-500">Mal optimizados</div>
-            </div>
-            <div className="rounded-full border border-stone-200 bg-white px-4 py-3 shadow-sm">
-              <div className="text-lg font-bold text-stone-900">USD</div>
-              <div className="text-sm text-stone-500">Precios accesibles</div>
-            </div>
+        <FadeUp delay={560}>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <a
+              href="#demo"
+              className="rounded-full bg-emerald-500 px-8 py-4 text-sm font-semibold text-white transition hover:bg-emerald-400"
+            >
+              Pedí tu demo gratis
+            </a>
+            <a
+              href="#como-funciona"
+              className="rounded-full border border-white/20 px-8 py-4 text-sm font-semibold text-white/70 transition hover:border-white/40 hover:text-white"
+            >
+              Cómo funciona ↓
+            </a>
           </div>
-        </div>
+        </FadeUp>
+      </section>
 
-        <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xl shadow-stone-200/50">
-          <div className="mb-6 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800">
-            Después de AnfiPro
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-2xl border border-stone-100 bg-stone-50 px-4 py-4">
-              <span className="text-sm font-medium text-stone-600">
-                Posicion en busqueda
-              </span>
-              <span className="text-sm font-bold text-stone-900">
-                Pag 14 → Pag 2
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between rounded-2xl border border-stone-100 bg-stone-50 px-4 py-4">
-              <span className="text-sm font-medium text-stone-600">
-                Vistas del anuncio
-              </span>
-              <span className="text-sm font-bold text-emerald-700">+180%</span>
-            </div>
-
-            <div className="flex items-center justify-between rounded-2xl border border-stone-100 bg-stone-50 px-4 py-4">
-              <span className="text-sm font-medium text-stone-600">
-                Tasa de reserva
-              </span>
-              <span className="text-sm font-bold text-emerald-700">+85%</span>
-            </div>
-
-            <div className="flex items-center justify-between rounded-2xl border border-stone-100 bg-stone-50 px-4 py-4">
-              <span className="text-sm font-medium text-stone-600">
-                Ingreso mensual
-              </span>
-              <span className="text-sm font-bold text-emerald-700">
-                +$420 USD
-              </span>
-            </div>
-          </div>
+      {/* ── STATS STRIP ─────────────────────────────────────────────── */}
+      <section className="border-y border-white/10">
+        <div className="mx-auto grid max-w-5xl grid-cols-3 divide-x divide-white/10 px-6">
+          <FadeUp className="px-6 py-14 text-center">
+            <div className="text-5xl font-extrabold tracking-tight">23K+</div>
+            <div className="mt-3 text-sm text-white/45">Anuncios en Buenos Aires</div>
+          </FadeUp>
+          <FadeUp delay={100} className="px-6 py-14 text-center">
+            <div className="text-5xl font-extrabold tracking-tight text-amber-400">70%</div>
+            <div className="mt-3 text-sm text-white/45">Están mal optimizados</div>
+          </FadeUp>
+          <FadeUp delay={200} className="px-6 py-14 text-center">
+            <div className="text-5xl font-extrabold tracking-tight text-emerald-400">2×</div>
+            <div className="mt-3 text-sm text-white/45">Más ingresos posibles</div>
+          </FadeUp>
         </div>
       </section>
 
-      <section className="border-y border-stone-200 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-16">
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
-              Las herramientas globales ignoran a los anfitriones argentinos
+      {/* ── PROBLEM SECTION ─────────────────────────────────────────── */}
+      <section className="bg-stone-50 text-stone-900">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
+          <FadeUp>
+            <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">
+              El problema
+            </p>
+            <h2 className="mt-4 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
+              Las herramientas globales ignoran a los anfitriones argentinos.
             </h2>
-          </div>
+          </FadeUp>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {problemCards.map((card) => (
-              <div
-                key={card.title}
-                className="rounded-3xl border border-stone-200 bg-stone-50 p-6 shadow-sm"
-              >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-900 text-lg font-bold text-white">
-                  {card.icon}
+          <div className="mt-16 grid gap-6 md:grid-cols-3">
+            {problemCards.map((card, i) => (
+              <FadeUp key={card.title} delay={i * 120}>
+                <div className="h-full rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
+                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-900 text-lg font-bold text-white">
+                    {card.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-stone-900">{card.title}</h3>
+                  <p className="mt-4 leading-7 text-stone-600">{card.body}</p>
                 </div>
-                <h3 className="text-xl font-bold text-stone-900">{card.title}</h3>
-                <p className="mt-3 leading-7 text-stone-600">{card.body}</p>
-              </div>
+              </FadeUp>
             ))}
           </div>
-
-          <div
-            id="demo"
-            className="mt-12 rounded-3xl border border-stone-200 bg-stone-900 p-8 text-white shadow-xl"
-          >
-            <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
-              <div>
-                <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-stone-100">
-                  Demo gratis
-                </span>
-                <h3 className="mt-4 text-3xl font-extrabold tracking-tight">
-                  Pedí una demo gratis
-                </h3>
-                <p className="mt-4 max-w-xl leading-7 text-stone-300">
-                  Dejanos tus datos y te mostramos como AnfiPro puede mejorar tu
-                  anuncio. Simple, rapido y en tu idioma.
-                </p>
-              </div>
-
-              <form className="grid gap-4 rounded-3xl bg-white p-6 text-stone-900 shadow-lg">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="mb-2 block text-sm font-medium text-stone-700"
-                  >
-                    Nombre
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    placeholder="Tu nombre"
-                    className="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm outline-none transition focus:border-stone-900"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="mb-2 block text-sm font-medium text-stone-700"
-                  >
-                    Mail
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="tu@email.com"
-                    className="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm outline-none transition focus:border-stone-900"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="mb-2 block text-sm font-medium text-stone-700"
-                  >
-                    Telefono
-                  </label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    placeholder="+54 9 11 ..."
-                    className="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm outline-none transition focus:border-stone-900"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="mt-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
-                >
-                  Quiero mi demo gratis
-                </button>
-              </form>
-            </div>
-          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-16">
-        <div className="max-w-3xl">
-          <h2 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
-            Elegí el nivel de optimizacion que necesitas
+      {/* ── PROPERTY PHOTOS ─────────────────────────────────────────── */}
+      <section className="overflow-hidden bg-stone-950 py-24">
+        <FadeUp className="mb-12 px-6 text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-white/40">
+            El tipo de propiedades con las que trabajamos
+          </p>
+          <h2 className="mt-3 text-4xl font-extrabold tracking-tight">
+            Cada anuncio tiene potencial sin explotar.
           </h2>
-        </div>
+        </FadeUp>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-4">
-          {pricingCards.map((card) => (
+        {/* Horizontal scroll strip */}
+        <div className="flex gap-4 overflow-x-auto px-6 pb-4 scrollbar-hide"
+          style={{ scrollSnapType: "x mandatory" }}>
+          {[
+            { src: "/images/property-1.jpg", location: "Palermo, CABA" },
+            { src: "/images/property-2.jpg", location: "Villa Crespo, CABA" },
+            { src: "/images/property-3.jpg", location: "Bariloche, Río Negro" },
+            { src: "/images/property-4.jpg", location: "San Telmo, CABA" },
+          ].map((img, i) => (
             <div
-              key={card.title}
-              className="relative rounded-3xl border border-stone-200 bg-white p-6 shadow-sm"
+              key={i}
+              className="group relative flex-shrink-0 overflow-hidden rounded-3xl"
+              style={{ width: "340px", scrollSnapAlign: "start" }}
             >
-              <div className="absolute right-4 top-4 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-800">
-                Muy pronto
-              </div>
-
-              <div className="text-sm font-semibold uppercase tracking-wide text-stone-500">
-                {card.label}
-              </div>
-              <h3 className="mt-3 text-2xl font-bold text-stone-900">
-                {card.title}
-              </h3>
-              <div className="mt-4 text-3xl font-extrabold text-stone-900">
-                {card.price}
-              </div>
-              <p className="mt-4 min-h-[96px] leading-7 text-stone-600">
-                {card.body}
-              </p>
-
-              <div className="mt-6 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
-                {card.badge}
+              <img
+                src={img.src}
+                alt={img.location}
+                className="h-96 w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5">
+                <p className="text-sm font-medium text-white/80">{img.location}</p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="border-y border-stone-200 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-16">
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
-              Sin apps, sin dashboards. Todo por WhatsApp.
+      {/* ── HOW IT WORKS ────────────────────────────────────────────── */}
+      <section id="como-funciona" className="bg-white text-stone-900">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
+          <FadeUp>
+            <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">
+              El proceso
+            </p>
+            <h2 className="mt-4 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
+              Sin apps, sin dashboards.
+              <br />
+              Todo por WhatsApp.
             </h2>
-          </div>
+          </FadeUp>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {steps.map((step) => (
-              <div
-                key={step.number}
-                className="rounded-3xl border border-stone-200 bg-stone-50 p-6 shadow-sm"
-              >
-                <div className="text-sm font-bold tracking-[0.2em] text-emerald-700">
-                  {step.number}
+          <div className="mt-16 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {steps.map((step, i) => (
+              <FadeUp key={step.number} delay={i * 110}>
+                <div className="relative h-full rounded-3xl border border-stone-200 bg-stone-50 p-8">
+                  <div className="mb-4 text-xs font-bold tracking-[0.2em] text-emerald-600">
+                    {step.number}
+                  </div>
+                  <h3 className="text-xl font-bold text-stone-900">{step.title}</h3>
+                  <p className="mt-3 leading-7 text-stone-600">{step.body}</p>
+                  {i < steps.length - 1 && (
+                    <div className="absolute -right-3 top-1/2 hidden -translate-y-1/2 text-stone-300 xl:block">
+                      →
+                    </div>
+                  )}
                 </div>
-                <h3 className="mt-3 text-xl font-bold text-stone-900">
-                  {step.title}
-                </h3>
-                <p className="mt-3 leading-7 text-stone-600">{step.body}</p>
-              </div>
+              </FadeUp>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 py-16 text-center lg:py-24">
-        <h2 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-5xl">
-          Tu propiedad ya esta en Airbnb. Ahora hacela rendir.
-        </h2>
-        <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-stone-600">
-          Los anfitriones argentinos merecen herramientas pensadas para ellos. No
-          mas suscripciones caras en dolares, no mas tutoriales en ingles, no mas
-          herramientas que no entienden la economia local. AnfiPro existe para
-          cerrar esa brecha.
-        </p>
-        <a
-          href="#demo"
-          className="mt-8 inline-flex rounded-full bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-700"
-        >
-          Sumate a la demo gratis
-        </a>
+      {/* ── PRICING ─────────────────────────────────────────────────── */}
+      <section className="bg-stone-950">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
+          <FadeUp>
+            <p className="text-sm font-semibold uppercase tracking-widest text-white/40">
+              Precios
+            </p>
+            <h2 className="mt-4 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
+              Elegí el nivel de optimización que necesitás.
+            </h2>
+          </FadeUp>
+
+          <div className="mt-16 grid gap-4 lg:grid-cols-4">
+            {pricingCards.map((card, i) => (
+              <FadeUp key={card.title} delay={i * 100}>
+                <div className="relative flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-7 backdrop-blur">
+                  <div className="absolute right-5 top-5 rounded-full bg-amber-400/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-300">
+                    Muy pronto
+                  </div>
+                  <div className="text-xs font-semibold uppercase tracking-widest text-white/40">
+                    {card.label}
+                  </div>
+                  <h3 className="mt-3 text-xl font-bold">{card.title}</h3>
+                  <div className="mt-4 text-4xl font-extrabold text-emerald-400">
+                    {card.price}
+                  </div>
+                  <p className="mt-4 flex-1 leading-7 text-white/55">{card.body}</p>
+                  <div className="mt-6 inline-flex rounded-full bg-emerald-500/15 px-3 py-1 text-sm font-medium text-emerald-400">
+                    {card.badge}
+                  </div>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
+        </div>
       </section>
 
-      <footer className="border-t border-stone-200 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-8 text-sm text-stone-500">
-          AnfiPro — Optimizacion de Airbnb para anfitriones argentinos
+      {/* ── DEMO / FORM ─────────────────────────────────────────────── */}
+      <section id="demo" className="bg-black">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
+          <div className="grid gap-16 lg:grid-cols-2 lg:items-start">
+
+            {/* Left: copy */}
+            <FadeUp>
+              <p className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
+                Demo gratis
+              </p>
+              <h2 className="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl">
+                Pedí una demo gratis.
+              </h2>
+              <p className="mt-6 max-w-lg leading-8 text-white/55">
+                Dejanos tus datos y te mostramos cómo AnfiPro puede mejorar tu
+                anuncio. Simple, rápido y en tu idioma.
+              </p>
+
+              <div className="mt-10 space-y-5">
+                {[
+                  { metric: "Pag 14 → Pag 2", label: "Posición en búsqueda" },
+                  { metric: "+180%", label: "Vistas del anuncio", highlight: true },
+                  { metric: "+85%", label: "Tasa de reserva", highlight: true },
+                  { metric: "+$420 USD", label: "Ingreso mensual", highlight: true },
+                ].map((row) => (
+                  <div
+                    key={row.label}
+                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4"
+                  >
+                    <span className="text-sm text-white/55">{row.label}</span>
+                    <span
+                      className={`text-sm font-bold ${
+                        row.highlight ? "text-emerald-400" : "text-white"
+                      }`}
+                    >
+                      {row.metric}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </FadeUp>
+
+            {/* Right: form */}
+            <FadeUp delay={150}>
+              <form
+                onSubmit={handleSubmit}
+                className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur"
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="name" className="mb-2 block text-xs font-medium text-white/50">
+                      Nombre
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="phone" className="mb-2 block text-xs font-medium text-white/50">
+                      Teléfono
+                    </label>
+                    <input
+                      id="phone"
+                      type="tel"
+                      placeholder="+54 9 11 ..."
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="mb-2 block text-xs font-medium text-white/50">
+                    Mail
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="listingUrl" className="mb-2 block text-xs font-medium text-white/50">
+                    Link de tu anuncio en Airbnb
+                  </label>
+                  <input
+                    id="listingUrl"
+                    type="url"
+                    placeholder="https://airbnb.com/rooms/..."
+                    value={formData.listingUrl}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="city" className="mb-2 block text-xs font-medium text-white/50">
+                      Ciudad / Barrio
+                    </label>
+                    <input
+                      id="city"
+                      type="text"
+                      placeholder="Palermo, Bariloche..."
+                      value={formData.city}
+                      onChange={handleChange}
+                      className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="propertyCount" className="mb-2 block text-xs font-medium text-white/50">
+                      Cant. de propiedades
+                    </label>
+                    <select
+                      id="propertyCount"
+                      value={formData.propertyCount}
+                      onChange={handleChange}
+                      className="w-full rounded-2xl border border-white/15 bg-stone-900 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-500"
+                    >
+                      <option value="">Elegí una opción</option>
+                      <option value="1">1 propiedad</option>
+                      <option value="2-3">2–3 propiedades</option>
+                      <option value="4-5">4–5 propiedades</option>
+                      <option value="6+">6 o más</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="occupancy" className="mb-2 block text-xs font-medium text-white/50">
+                      Ocupación promedio
+                    </label>
+                    <select
+                      id="occupancy"
+                      value={formData.occupancy}
+                      onChange={handleChange}
+                      className="w-full rounded-2xl border border-white/15 bg-stone-900 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-500"
+                    >
+                      <option value="">Elegí una opción</option>
+                      <option value="<30%">Menos del 30%</option>
+                      <option value="30-50%">30–50%</option>
+                      <option value="50-70%">50–70%</option>
+                      <option value="70-90%">70–90%</option>
+                      <option value=">90%">Más del 90%</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="revenueRange" className="mb-2 block text-xs font-medium text-white/50">
+                      Ingresos mensuales (USD)
+                    </label>
+                    <select
+                      id="revenueRange"
+                      value={formData.revenueRange}
+                      onChange={handleChange}
+                      className="w-full rounded-2xl border border-white/15 bg-stone-900 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-500"
+                    >
+                      <option value="">Elegí una opción</option>
+                      <option value="<500">Menos de $500</option>
+                      <option value="500-1000">$500–$1.000</option>
+                      <option value="1000-2500">$1.000–$2.500</option>
+                      <option value="2500-5000">$2.500–$5.000</option>
+                      <option value=">5000">Más de $5.000</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="mainProblem" className="mb-2 block text-xs font-medium text-white/50">
+                    ¿Cuál es tu mayor problema hoy?
+                  </label>
+                  <select
+                    id="mainProblem"
+                    value={formData.mainProblem}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-white/15 bg-stone-900 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-500"
+                  >
+                    <option value="">Elegí una opción</option>
+                    <option value="pocas-vistas">Pocas vistas al anuncio</option>
+                    <option value="pocas-reservas">Muchas vistas, pocas reservas</option>
+                    <option value="precios">No sé cómo poner los precios</option>
+                    <option value="fotos">Mis fotos no son buenas</option>
+                    <option value="resenas">Pocas o malas reseñas</option>
+                    <option value="competencia">La competencia me gana en precio</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={status.loading}
+                  className="mt-2 rounded-2xl bg-emerald-500 px-5 py-4 text-sm font-semibold text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {status.loading ? "Enviando..." : "Quiero mi demo gratis"}
+                </button>
+
+                {status.error && (
+                  <p className="text-sm font-medium text-red-400">{status.error}</p>
+                )}
+                {status.success && (
+                  <p className="text-sm font-medium text-emerald-400">{status.success}</p>
+                )}
+              </form>
+            </FadeUp>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ──────────────────────────────────────────────────── */}
+      <footer className="border-t border-white/10">
+        <div className="mx-auto max-w-7xl px-6 py-8 text-sm text-white/30">
+          AnfiPro — Optimización de Airbnb para anfitriones argentinos
         </div>
       </footer>
+
     </main>
   );
 }
