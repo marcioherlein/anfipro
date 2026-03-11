@@ -41,6 +41,18 @@ function FadeUp({ children, className = "", delay = 0 }) {
 }
 
 export default function HomePage() {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    function onScroll() {
+      setScrollY(window.scrollY);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const heroImageOpacity = Math.max(0, 1 - scrollY / (typeof window !== "undefined" ? window.innerHeight * 0.65 : 500));
+
   const problemCards = [
     {
       icon: "$",
@@ -176,7 +188,7 @@ export default function HomePage() {
     <main className="bg-black text-white">
 
       {/* ── NAV ─────────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/75 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 backdrop-blur-xl" style={{ background: `rgba(0,0,0,${Math.min(0.85, 0.2 + scrollY / 300)})` }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-end gap-2">
             <span className="text-xl font-extrabold tracking-tight">anfiPro</span>
@@ -191,8 +203,21 @@ export default function HomePage() {
         </div>
       </nav>
 
+      {/* ── HERO BACKGROUND IMAGE (fixed, fades on scroll) ──────────── */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{ opacity: heroImageOpacity }}
+      >
+        <img
+          src="/images/001-chic-cozy-airbnb-apartment-a-modern-stay-in-athens-1050x700.jpeg"
+          alt=""
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/55" />
+      </div>
+
       {/* ── HERO ────────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-screen flex-col items-center justify-center px-6 pt-20 text-center">
+      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pt-20 text-center">
         {/* subtle radial glow */}
         <div
           className="pointer-events-none absolute inset-0"
@@ -244,7 +269,7 @@ export default function HomePage() {
       </section>
 
       {/* ── STATS STRIP ─────────────────────────────────────────────── */}
-      <section className="border-y border-white/10">
+      <section className="relative z-10 border-y border-white/10 bg-black">
         <div className="mx-auto grid max-w-5xl grid-cols-3 divide-x divide-white/10 px-6">
           <FadeUp className="px-6 py-14 text-center">
             <div className="text-5xl font-extrabold tracking-tight">23K+</div>
@@ -262,7 +287,7 @@ export default function HomePage() {
       </section>
 
       {/* ── PROBLEM SECTION ─────────────────────────────────────────── */}
-      <section className="bg-stone-50 text-stone-900">
+      <section className="relative z-10 bg-stone-50 text-stone-900">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
           <FadeUp>
             <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">
@@ -290,7 +315,7 @@ export default function HomePage() {
       </section>
 
       {/* ── PROPERTY PHOTOS ─────────────────────────────────────────── */}
-      <section className="overflow-hidden bg-stone-950 py-24">
+      <section className="relative z-10 overflow-hidden bg-stone-950 py-24">
         <FadeUp className="mb-12 px-6 text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-white/40">
             El tipo de propiedades con las que trabajamos
@@ -328,7 +353,7 @@ export default function HomePage() {
       </section>
 
       {/* ── HOW IT WORKS ────────────────────────────────────────────── */}
-      <section id="como-funciona" className="bg-white text-stone-900">
+      <section id="como-funciona" className="relative z-10 bg-white text-stone-900">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
           <FadeUp>
             <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">
@@ -363,7 +388,7 @@ export default function HomePage() {
       </section>
 
       {/* ── PRICING ─────────────────────────────────────────────────── */}
-      <section className="bg-stone-950">
+      <section className="relative z-10 bg-stone-950">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
           <FadeUp>
             <p className="text-sm font-semibold uppercase tracking-widest text-white/40">
@@ -400,7 +425,7 @@ export default function HomePage() {
       </section>
 
       {/* ── DEMO / FORM ─────────────────────────────────────────────── */}
-      <section id="demo" className="bg-black">
+      <section id="demo" className="relative z-10 bg-black">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
           <div className="grid gap-16 lg:grid-cols-2 lg:items-start">
 
@@ -618,7 +643,7 @@ export default function HomePage() {
       </section>
 
       {/* ── FOOTER ──────────────────────────────────────────────────── */}
-      <footer className="border-t border-white/10">
+      <footer className="relative z-10 border-t border-white/10 bg-black">
         <div className="mx-auto max-w-7xl px-6 py-8 text-sm text-white/30">
           AnfiPro — Optimización de Airbnb para anfitriones argentinos
         </div>
