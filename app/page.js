@@ -286,6 +286,125 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── MARKET INTELLIGENCE ─────────────────────────────────────── */}
+      <section className="relative z-10 bg-stone-950 py-24 lg:py-32">
+        <div className="mx-auto max-w-7xl px-6">
+
+          <FadeUp>
+            <p className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
+              Inteligencia de mercado
+            </p>
+            <h2 className="mt-4 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
+              31.598 anuncios analizados.<br />Esto es lo que muestran los datos.
+            </h2>
+            <p className="mt-4 text-sm text-white/35">
+              Fuente: dataset público de Airbnb Buenos Aires · Tipo de cambio MEP $1.164 (ene 2025)
+            </p>
+          </FadeUp>
+
+          {/* ── KPI row ── */}
+          <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { value: "31.6K", label: "Anuncios con precio analizado", color: "text-white" },
+              { value: "USD 34", label: "Tarifa mediana por noche en CABA", color: "text-emerald-400" },
+              { value: "USD 25–50", label: "Rango típico del mercado", color: "text-sky-400" },
+              { value: "USD 79+", label: "Top 10% del mercado", color: "text-amber-400" },
+            ].map((kpi, i) => (
+              <FadeUp key={kpi.label} delay={i * 80}>
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-7 backdrop-blur">
+                  <div className={`text-4xl font-extrabold tracking-tight ${kpi.color}`}>{kpi.value}</div>
+                  <div className="mt-3 text-sm leading-6 text-white/50">{kpi.label}</div>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
+
+          {/* ── Neighborhood bars ── */}
+          <div className="mt-16 grid gap-10 lg:grid-cols-2">
+            <FadeUp>
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+                <h3 className="mb-6 text-lg font-bold text-white">Tarifa mediana por barrio (USD/noche)</h3>
+                {[
+                  { name: "Palermo", median: 37.9, listings: "10.4K anuncios", pct: 100 },
+                  { name: "Recoleta", median: 36.1, listings: "4.5K anuncios", pct: 95 },
+                  { name: "Belgrano", median: 36.1, listings: "1.6K anuncios", pct: 95 },
+                  { name: "Retiro", median: 34.4, listings: "1.5K anuncios", pct: 91 },
+                  { name: "San Nicolás", median: 29.8, listings: "2.2K anuncios", pct: 79 },
+                ].map((row) => (
+                  <div key={row.name} className="mb-5">
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="text-sm font-semibold text-white/80">{row.name}</span>
+                      <span className="text-sm font-bold text-emerald-400">USD {row.median}</span>
+                    </div>
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className="h-full rounded-full bg-emerald-500"
+                        style={{ width: `${row.pct}%`, transition: "width 1.2s ease" }}
+                      />
+                    </div>
+                    <div className="mt-1 text-xs text-white/30">{row.listings}</div>
+                  </div>
+                ))}
+              </div>
+            </FadeUp>
+
+            <FadeUp delay={120}>
+              <div className="flex flex-col gap-6">
+                {/* Price distribution */}
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+                  <h3 className="mb-6 text-lg font-bold text-white">Distribución de precios — CABA</h3>
+                  {[
+                    { label: "P25 (25% más barato)", value: "USD 25.5", barW: "25%", color: "bg-sky-500" },
+                    { label: "Mediana (P50)", value: "USD 34.3", barW: "40%", color: "bg-emerald-500" },
+                    { label: "P75", value: "USD 49.6", barW: "60%", color: "bg-amber-500" },
+                    { label: "P90 (top 10%)", value: "USD 79.4", barW: "80%", color: "bg-orange-500" },
+                    { label: "P95 (top 5%)", value: "USD 108.9", barW: "100%", color: "bg-rose-500" },
+                  ].map((row) => (
+                    <div key={row.label} className="mb-4">
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="text-xs text-white/50">{row.label}</span>
+                        <span className="text-sm font-bold text-white">{row.value}</span>
+                      </div>
+                      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                        <div className={`h-full rounded-full ${row.color}`} style={{ width: row.barW }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Room type */}
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+                  <h3 className="mb-6 text-lg font-bold text-white">Mediana por tipo de alojamiento</h3>
+                  {[
+                    { label: "Departamento entero", value: "USD 35.4", icon: "🏠", highlight: true },
+                    { label: "Habitación privada", value: "USD 18.0", icon: "🛏️", highlight: false },
+                    { label: "Habitación compartida", value: "USD 11.3", icon: "🛋️", highlight: false },
+                  ].map((row) => (
+                    <div key={row.label} className={`mb-3 flex items-center justify-between rounded-2xl border px-5 py-4 ${row.highlight ? "border-emerald-500/30 bg-emerald-500/10" : "border-white/10 bg-white/3"}`}>
+                      <span className="text-sm text-white/70">{row.icon} {row.label}</span>
+                      <span className={`text-sm font-bold ${row.highlight ? "text-emerald-400" : "text-white/60"}`}>{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FadeUp>
+          </div>
+
+          {/* ── Bottom callout ── */}
+          <FadeUp delay={100}>
+            <div className="mt-10 rounded-3xl border border-emerald-500/25 bg-emerald-500/8 p-8">
+              <p className="leading-8 text-white/70">
+                <span className="font-semibold text-white">La conclusión es clara:</span> en un mercado donde
+                la mayoría de los departamentos enteros se publica entre USD 25 y USD 50 por noche, la diferencia
+                entre quedar en la media y capturar la demanda premium no es el precio — es el posicionamiento,
+                las fotos y la optimización del anuncio.
+              </p>
+            </div>
+          </FadeUp>
+
+        </div>
+      </section>
+
       {/* ── PROBLEM SECTION ─────────────────────────────────────────── */}
       <section className="relative z-10 bg-stone-50 text-stone-900">
         <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
